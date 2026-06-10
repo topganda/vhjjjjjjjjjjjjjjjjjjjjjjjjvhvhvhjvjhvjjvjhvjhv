@@ -36,20 +36,33 @@ function NavHeader<TValue extends string = string>({
   const containerRef = useRef<HTMLUListElement>(null)
 
   React.useEffect(() => {
-    // Find the active tab element and set cursor position
-    const activeTabIndex = items.findIndex(item => item.value === value)
-    if (activeTabIndex !== -1 && containerRef.current) {
-      const tabs = containerRef.current.querySelectorAll('li[role="presentation"]')
-      if (tabs[activeTabIndex]) {
-        const tab = tabs[activeTabIndex] as HTMLElement
-        const { width } = tab.getBoundingClientRect()
-        setPosition({
-          width,
-          opacity: 1,
-          left: tab.offsetLeft,
-        })
+    const updatePosition = () => {
+      // Find the active tab element and set cursor position
+      const activeTabIndex = items.findIndex(item => item.value === value)
+      if (activeTabIndex !== -1 && containerRef.current) {
+        const tabs = containerRef.current.querySelectorAll('li')
+        // Skip the cursor li (motion.li)
+        const tabElements = Array.from(tabs).filter(tab => 
+          !(tab as any).hasAttribute('data-cursor')
+        )
+        if (tabElements[activeTabIndex]) {
+          const tab = tabElements[activeTabIndex] as HTMLElement
+          const { width } = tab.getBoundingClientRect()
+          setPosition({
+            width,
+            opacity: 1,
+            left: tab.offsetLeft,
+          })
+        }
       }
     }
+
+    // Update immediately
+    updatePosition()
+    
+    // Also update on window resize
+    window.addEventListener('resize', updatePosition)
+    return () => window.removeEventListener('resize', updatePosition)
   }, [value, items])
 
   return (
@@ -86,7 +99,6 @@ const Tab = ({
   return (
     <li
       ref={ref}
-      role="presentation"
       onClick={onClick}
       onMouseEnter={() => {
         if (!ref.current) return
@@ -108,6 +120,7 @@ const Tab = ({
 const Cursor = ({ position }: { position: CursorPosition }) => {
   return (
     <motion.li
+      data-cursor="true"
       animate={position}
       className="absolute z-0 top-1 h-10 rounded-full bg-white sm:h-12 md:h-[3.5rem]"
     />
