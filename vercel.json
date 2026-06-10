@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd igl-main && npm run build",
+  "devCommand": "cd igl-main && npm run dev",
+  "installCommand": "cd igl-main && npm install"
+}
