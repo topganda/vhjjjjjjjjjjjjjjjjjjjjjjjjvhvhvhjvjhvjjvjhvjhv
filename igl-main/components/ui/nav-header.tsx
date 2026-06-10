@@ -23,6 +23,7 @@ interface NavHeaderProps<TValue extends string = string> {
 
 function NavHeader<TValue extends string = string>({
   items,
+  value,
   onValueChange,
   className,
 }: NavHeaderProps<TValue>) {
@@ -31,9 +32,29 @@ function NavHeader<TValue extends string = string>({
     width: 0,
     opacity: 0,
   })
+  
+  const containerRef = useRef<HTMLUListElement>(null)
+
+  React.useEffect(() => {
+    // Find the active tab element and set cursor position
+    const activeTabIndex = items.findIndex(item => item.value === value)
+    if (activeTabIndex !== -1 && containerRef.current) {
+      const tabs = containerRef.current.querySelectorAll('li[role="presentation"]')
+      if (tabs[activeTabIndex]) {
+        const tab = tabs[activeTabIndex] as HTMLElement
+        const { width } = tab.getBoundingClientRect()
+        setPosition({
+          width,
+          opacity: 1,
+          left: tab.offsetLeft,
+        })
+      }
+    }
+  }, [value, items])
 
   return (
     <ul
+      ref={containerRef}
       className={`relative mx-auto flex w-fit rounded-full border border-white/10 bg-black p-1 ${className ?? ""}`}
       onMouseLeave={() => setPosition((pv) => ({ ...pv, opacity: 0 }))}
     >
@@ -65,6 +86,7 @@ const Tab = ({
   return (
     <li
       ref={ref}
+      role="presentation"
       onClick={onClick}
       onMouseEnter={() => {
         if (!ref.current) return
